@@ -5,7 +5,15 @@ const User = require('../../models/user');
 const Booking = require('../../models/booking');
 const booking = require('../../models/booking');
 const jwt = require('jsonwebtoken');
+const DataLoader = require('dataloader');
+const event = require('../../models/event');
 
+const eventLoader = new DataLoader((eventIds) => {
+    return events(eventIds);
+});
+const userLoader = new DataLoader(userIds => {
+    return User.find({_id : {$in : userIds}});
+});
 
 const transformEvent = event => {
     return {
@@ -50,8 +58,8 @@ const user = userId => {
 }
 const singleEvent = async eventId => {
     try{
-        const event = await Event.findById(eventId);
-        return transformEvent(event);
+        const event = await Event.findById(eventId);;
+        return event;
 
     }catch(err) {
         throw err;
@@ -71,9 +79,9 @@ module.exports = {
                 throw err;
             });
         },
-        bookings : async () => {
+        bookings : async (args,req) => {
             try{
-             const bookings= await Booking.find();
+             const bookings= await Booking.find({user:req.userId});
              return bookings.map(booking =>{
                  return transformBooking(booking);
              })
